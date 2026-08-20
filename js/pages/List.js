@@ -24,11 +24,15 @@ export default {
 
         <main v-else class="page-list">
             <div class="list-container">
-                <table class="list" v-if="list">
-                    <tr v-for="([level, err], i) in list">
+                <table class="list" v-if="list && list.length">
+                    <tr v-for="([level, err], i) in list" :key="i">
                         <td class="rank">
-                            <p v-if="i + 1 <= 150" class="type-label-lg">#{{ i + 1 }}</p>
-                            <p v-else class="type-label-lg">Legacy</p>
+                            <p v-if="i + 1 <= 150" class="type-label-lg">
+                                #{{ i + 1 }}
+                            </p>
+                            <p v-else class="type-label-lg">
+                                Legacy
+                            </p>
                         </td>
 
                         <td
@@ -46,6 +50,11 @@ export default {
                         </td>
                     </tr>
                 </table>
+
+                <div v-else class="list-error">
+                    <p>Failed to load the list.</p>
+                    <p>Please refresh the page and try again.</p>
+                </div>
             </div>
 
             <div class="level-container">
@@ -59,6 +68,7 @@ export default {
                     ></LevelAuthors>
 
                     <iframe
+                        v-if="video"
                         class="video"
                         id="videoframe"
                         :src="video"
@@ -71,21 +81,27 @@ export default {
                                 Points when completed
                             </div>
                             <p>
-                                {{ score(
-                                    selected + 1,
-                                    100,
-                                    level.percentToQualify
-                                ) }}
+                                {{
+                                    score(
+                                        selected + 1,
+                                        100,
+                                        level.percentToQualify
+                                    )
+                                }}
                             </p>
                         </li>
 
                         <li>
-                            <div class="type-title-sm">ID</div>
+                            <div class="type-title-sm">
+                                ID
+                            </div>
                             <p>{{ level.id }}</p>
                         </li>
 
                         <li>
-                            <div class="type-title-sm">Password</div>
+                            <div class="type-title-sm">
+                                Password
+                            </div>
                             <p>
                                 {{ level.password || 'Free to Copy' }}
                             </p>
@@ -110,7 +126,8 @@ export default {
 
                     <table class="records">
                         <tr
-                            v-for="record in level.records"
+                            v-for="record in (level.records || [])"
+                            :key="record.user + record.percent"
                             class="record"
                         >
                             <td class="percent">
@@ -132,7 +149,7 @@ export default {
                                     v-if="record.mobile"
                                     :src="\`/assets/phone-landscape\${store.dark ? '-dark' : ''}.svg\`"
                                     alt="Mobile"
-                                >
+                                />
                             </td>
 
                             <td class="hz">
@@ -153,7 +170,6 @@ export default {
 
             <div class="meta-container">
                 <div class="meta">
-
                     <div
                         class="errors"
                         v-show="errors.length > 0"
@@ -161,6 +177,7 @@ export default {
                         <p
                             class="error"
                             v-for="error of errors"
+                            :key="error"
                         >
                             {{ error }}
                         </p>
@@ -182,12 +199,14 @@ export default {
                         <h3>List Editors</h3>
 
                         <ol class="editors">
-                            <li v-for="editor in editors">
-
+                            <li
+                                v-for="editor in editors"
+                                :key="editor.name"
+                            >
                                 <img
                                     :src="\`/assets/\${roleIconMap[editor.role]}\${store.dark ? '-dark' : ''}.svg\`"
                                     :alt="editor.role"
-                                >
+                                />
 
                                 <a
                                     v-if="editor.link"
@@ -201,7 +220,6 @@ export default {
                                 <p v-else>
                                     {{ editor.name }}
                                 </p>
-
                             </li>
                         </ol>
                     </template>
@@ -209,19 +227,19 @@ export default {
                     <h3>Submission Requirements</h3>
 
                     <p>
-                        Achieved the record without using hacks
-                        (however, FPS bypass is allowed, up to 360fps)
+                        Achieved the record without using hacks (however,
+                        FPS bypass is allowed, up to 360fps)
                     </p>
 
                     <p>
-                        Achieved the record on the level that is listed
-                        on the site - please check the level ID before
-                        you submit a record
+                        Achieved the record on the level that is listed on
+                        the site - please check the level ID before you
+                        submit a record
                     </p>
 
                     <p>
-                        Have either source audio or clicks/taps in the
-                        video. Edited audio only does not count
+                        Have either source audio or clicks/taps in the video.
+                        Edited audio only does not count
                     </p>
 
                     <p>
@@ -248,42 +266,55 @@ export default {
                     <p>
                         Once a level falls onto the Legacy List, we accept
                         records for it for 24 hours after it falls off,
-                        then afterwards we never accept records for said
-                        level
+                        then afterwards we never accept records for said level
                     </p>
-
                 </div>
             </div>
         </main>
     `,
 
     data: () => ({
-        list: [],
+        list: null,
         editors: [],
         loading: true,
         selected: 0,
         errors: [],
         roleIconMap,
-        store
+        store,
     }),
 
     computed: {
         level() {
+            // Prevent:
+            // TypeError: can't access property 0, this.list is null
+            if (!Array.isArray(this.list) || this.list.length === 0) {
+                return null;
+            }
+
+            // Make sure selected is always a valid index.
             if (
-                !this.list ||
-                !this.list.length ||
-                !this.list[this.selected] ||
-                !this.list[this.selected][0]
+                this.selected < 0 ||
+                this.selected >= this.list.length
             ) {
                 return null;
             }
 
-            return this.list[this.selected][0];
+            const entry = this.list[this.selected];
+
+            if (!Array.isArray(entry)) {
+                return null;
+            }
+
+            return entry[0] || null;
         },
 
         video() {
             if (!this.level) {
-                return "";
+                return null;
+            }
+
+            if (!this.level.verification) {
+                return null;
             }
 
             if (!this.level.showcase) {
@@ -299,30 +330,64 @@ export default {
     },
 
     async mounted() {
-        // Hide loading spinner
-        this.list = await fetchList();
-        this.editors = await fetchEditors();
+        try {
+            this.list = await fetchList();
+            this.editors = await fetchEditors();
 
-        // Error handling
-        if (!this.list) {
+            if (!this.list) {
+                this.errors = [
+                    "Failed to load list. Retry in a few minutes or notify list staff.",
+                ];
+            } else {
+                this.errors.push(
+                    ...this.list
+                        .filter(([_, err]) => err)
+                        .map(([_, err]) => {
+                            return `Failed to load level. (${err}.json)`;
+                        })
+                );
+
+                // If the list loaded but contains no levels,
+                // don't allow the page to crash.
+                if (this.list.length === 0) {
+                    this.errors.push(
+                        "The list is empty."
+                    );
+                }
+
+                if (!this.editors) {
+                    this.errors.push(
+                        "Failed to load list editors."
+                    );
+                }
+
+                // Make sure the first available level is selected.
+                const firstValidIndex = this.list.findIndex(
+                    ([level]) => level
+                );
+
+                if (
+                    firstValidIndex !== -1 &&
+                    (!this.list[this.selected] ||
+                        !this.list[this.selected][0])
+                ) {
+                    this.selected = firstValidIndex;
+                }
+            }
+        } catch (error) {
+            console.error(
+                "Unexpected error while loading the list.",
+                error
+            );
+
+            this.list = null;
+
             this.errors = [
                 "Failed to load list. Retry in a few minutes or notify list staff.",
             ];
-        } else {
-            this.errors.push(
-                ...this.list
-                    .filter(([_, err]) => err)
-                    .map(([_, err]) => {
-                        return `Failed to load level. (${err}.json)`;
-                    })
-            );
-
-            if (!this.editors) {
-                this.errors.push("Failed to load list editors.");
-            }
+        } finally {
+            this.loading = false;
         }
-
-        this.loading = false;
     },
 
     methods: {
