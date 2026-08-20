@@ -2,72 +2,93 @@ import { round, score } from './score.js';
 
 /**
  * Path to directory containing `_list.json` and all levels
- *
- * Using import.meta.url makes this work correctly on GitHub Pages
- * even when the repository is hosted under /TheGTFACDL/
  */
-const dir = new URL('../data/', import.meta.url);
+const dir = './data';
 
 export async function fetchList() {
     try {
-        const listResult = await fetch(new URL('_list.json', dir));
+        const listResult = await fetch(`${dir}/_list.json`, {
+            cache: 'no-cache',
+        });
 
         if (!listResult.ok) {
-            throw new Error(`HTTP ${listResult.status}`);
+            throw new Error(
+                `Failed to fetch _list.json: HTTP ${listResult.status}`
+            );
         }
 
         const list = await listResult.json();
 
+        if (!Array.isArray(list)) {
+            throw new Error('_list.json does not contain an array.');
+        }
+
         return await Promise.all(
             list.map(async (path, rank) => {
-                const levelResult = await fetch(
-                    new URL(`${path}.json`, dir)
-                );
-
                 try {
+                    const levelResult = await fetch(`${dir}/${path}.json`, {
+                        cache: 'no-cache',
+                    });
+
                     if (!levelResult.ok) {
-                        throw new Error(`HTTP ${levelResult.status}`);
+                        throw new Error(
+                            `HTTP ${levelResult.status}`
+                        );
                     }
 
                     const level = await levelResult.json();
+
+                    if (!level || typeof level !== 'object') {
+                        throw new Error('Invalid level JSON.');
+                    }
+
+                    const records = Array.isArray(level.records)
+                        ? level.records
+                        : [];
 
                     return [
                         {
                             ...level,
                             path,
-                            records: level.records.sort(
-                                (a, b) => b.percent - a.percent,
+                            records: records.sort(
+                                (a, b) => b.percent - a.percent
                             ),
                         },
                         null,
                     ];
-                } catch {
+                } catch (error) {
                     console.error(
-                        `Failed to load level #${rank + 1} ${path}.`
+                        `Failed to load level #${rank + 1} ${path}.`,
+                        error
                     );
+
                     return [null, path];
                 }
-            }),
+            })
         );
     } catch (error) {
-        console.error('Failed to load list:', error);
+        console.error('Failed to load list.', error);
         return null;
     }
 }
 
 export async function fetchEditors() {
     try {
-        const editorsResults = await fetch(
-            new URL('_editors.json', dir)
-        );
+        const editorsResults = await fetch(`${dir}/_editors.json`, {
+            cache: 'no-cache',
+        });
 
         if (!editorsResults.ok) {
-            throw new Error(`HTTP ${editorsResults.status}`);
+            throw new Error(
+                `HTTP ${editorsResults.status}`
+            );
         }
 
         const editors = await editorsResults.json();
-        return editors;
-    } catch {
+
+        return Array.isArray(editors) ? editors : null;
+    } catch (error) {
+        console.error('Failed to load list editors.', error);
         return null;
     }
 }
@@ -76,23 +97,24 @@ export async function fetchLeaderboard() {
     const list = await fetchList();
 
     if (!list) {
-        return [[], []];
+        return [[], ['_list']];
     }
 
     const scoreMap = {};
     const errs = [];
 
     list.forEach(([level, err], rank) => {
-        if (err) {
-            errs.push(err);
+        if (err || !level) {
+            if (err) {
+                errs.push(err);
+            }
             return;
         }
 
         // Verification
-        const verifier =
-            Object.keys(scoreMap).find(
-                (u) => u.toLowerCase() === level.verifier.toLowerCase(),
-            ) || level.verifier;
+        const verifier = Object.keys(scoreMap).find(
+            (u) => u.toLowerCase() === level.verifier.toLowerCase(),
+        ) || level.verifier;
 
         scoreMap[verifier] ??= {
             verified: [],
@@ -110,11 +132,14 @@ export async function fetchLeaderboard() {
         });
 
         // Records
-        level.records.forEach((record) => {
-            const user =
-                Object.keys(scoreMap).find(
-                    (u) => u.toLowerCase() === record.user.toLowerCase(),
-                ) || record.user;
+        const records = Array.isArray(level.records)
+            ? level.records
+            : [];
+
+        records.forEach((record) => {
+            const user = Object.keys(scoreMap).find(
+                (u) => u.toLowerCase() === record.user.toLowerCase(),
+            ) || record.user;
 
             scoreMap[user] ??= {
                 verified: [],
@@ -135,6 +160,7 @@ export async function fetchLeaderboard() {
                     ),
                     link: record.link,
                 });
+
                 return;
             }
 
