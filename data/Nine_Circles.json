@@ -1,0 +1,24 @@
+{
+    "id": 4284013,
+    "name": "Nine Circles",
+    "author": "Zobros",
+    "creators": ["Zobros"],
+    "verifier": "Liix",
+    "verification": "about:blank",
+    "percentToQualify": "100",
+    "password": "e",
+    "records": [
+        {
+            "user": "Atomik58",
+            "link": "about:blank",
+            "percent": 100,
+            "hz": 240
+        },
+        {
+            "user": "Mixmer",
+            "link": "about:blank",
+            "percent": 100,
+            "hz": 240
+        }
+    ]
+}
