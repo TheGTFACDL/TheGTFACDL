@@ -8,5 +8,35 @@
     "percentToQualify": "100",
     "password": "The 77th element of the pieriodic table is going to explore a whole new world",
     "records": [
+        {
+            "user": "Mixmer",
+            "link": "about:blank",
+            "percent": 100,
+            "hz": 240
+        },
+        {
+            "user": "egor337",
+            "link": "about:blank",
+            "percent": 100,
+            "hz": 240
+        },
+        {
+            "user": "Atomik58",
+            "link": "about:blank",
+            "percent": 100,
+            "hz": 240
+        },
+        {
+            "user": "Wakko",
+            "link": "about:blank",
+            "percent": 100,
+            "hz": 240
+        },
+        {
+            "user": "Dunno12",
+            "link": "about:blank",
+            "percent": 100,
+            "hz": 240
+        }
     ]
 }
