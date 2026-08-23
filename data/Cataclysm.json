@@ -8,5 +8,11 @@
     "percentToQualify": "100",
     "password": "Germanboi12_verified_:)",
     "records": [
+        {
+            "user": "Bobert",
+            "link": "about:blank",
+            "percent": 100,
+            "hz": 240
+        }
     ]
 }
