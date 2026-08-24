@@ -8,5 +8,17 @@
     "percentToQualify": "100",
     "password": "It's NothinG",
     "records": [
+        {
+            "user": "Wakko",
+            "link": "about:blank",
+            "percent": 100,
+            "hz": 360
+        },
+        {
+            "user": "Mixmer",
+            "link": "about:blank",
+            "percent": 100,
+            "hz": 360
+        },\
     ]
 }
