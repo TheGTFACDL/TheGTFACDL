@@ -8,5 +8,29 @@
     "percentToQualify": "100",
     "password": "THE NI-",
     "records": [
+         {
+            "user": "Wakko",
+            "link": "about:blank",
+            "percent": 100,
+            "hz": 360
+        },
+        {
+            "user": "Atomik58",
+            "link": "about:blank",
+            "percent": 100,
+            "hz": 360
+        },
+        {
+            "user": "egor337",
+            "link": "about:blank",
+            "percent": 100,
+            "hz": 360
+        },
+        {
+            "user": "Dunno12",
+            "link": "about:blank",
+            "percent": 100,
+            "hz": 360
+        },
     ]
 }
